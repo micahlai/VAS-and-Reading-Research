@@ -4,15 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Xml;
 using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 public class gameManager : MonoBehaviour
 {
     public Text text;
-    public Vector2 sampleLength = new Vector2(3, 7);
-    public bool sentence = false;
+    public Text statusText;
+    public bool showStatusText = false;
     [Header("Timing")]
     public float timeInterval = 5000f;
-    public float timeShown = 500f;
+    public float startTimeShown = 1500f;
+    [Space]
+    [Range(0, 100)]
+    public float minSimilarity = 90f;
+    public float timeReduction = 150f;
+    public float timeAdd = 100f;
+    [Space]
+    float timeShown;
     float timeState = 0;
     bool textShown = false;
     [Space]
@@ -30,8 +39,10 @@ public class gameManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-      
+        text.text = "";
+        statusText.text = "";
         sentenceSample = sentences.text.Split(";\n");
+        timeShown = startTimeShown;
     }
 
     // Update is called once per frame
@@ -70,9 +81,31 @@ public class gameManager : MonoBehaviour
             {
                 inputting = false;
                 check.gameObject.SetActive(false);
-                Debug.Log(CheckAccuracy(check.text));
+
+                string given = RemovePunctuation(RemoveWhitespacesUsingLinq(lastSentenceSplice[1].ToLower()));
+                string inputted = RemovePunctuation(RemoveWhitespacesUsingLinq(check.text.ToLower()));
+
+                bool correct = CheckAccuracy(inputted, given);
+                double similarity = Mathf.Round((float)CheckSimilarity(inputted, given) * 10)/10;
+
+                Debug.Log("Got correct: " + correct.ToString());
+                Debug.Log("% Accuracy: " + similarity.ToString());
+
+                if(CheckSimilarity(inputted,given) > minSimilarity)
+                {
+                    timeShown -= timeReduction;
+                }
+                else
+                {
+                    timeShown += timeAdd;
+                }
+
                 check.text = "";
 
+                if (showStatusText)
+                {
+                    statusText.text = "Got correct: " + correct.ToString() + ", " + "% Accuracy: " + similarity.ToString() + ", " + "Time Interval (ms): " + timeShown.ToString();
+                }
 
             }
         }
@@ -85,18 +118,74 @@ public class gameManager : MonoBehaviour
     {
 
     }
-    bool CheckAccuracy(string inputText)
+    bool CheckAccuracy(string inputText, string matchText)
     {
-        string given = RemovePunctuation(RemoveWhitespacesUsingLinq(lastSentenceSplice[1].ToLower()));
-        string inputted = RemovePunctuation(RemoveWhitespacesUsingLinq(inputText.ToLower()));
-
-        Debug.Log(given);
-        Debug.Log(inputted);
-
-        bool gotCorrect = (given == inputted);
+        bool gotCorrect = (matchText == inputText);
 
         return gotCorrect;
     }
+    #region accuracy test
+    public static double CheckSimilarity(string str1, string str2)
+    {
+        List<string> pairs1 = WordLetterPairs(str1.ToUpper());
+        List<string> pairs2 = WordLetterPairs(str2.ToUpper());
+
+        int intersection = 0;
+        int union = pairs1.Count + pairs2.Count;
+
+        for (int i = 0; i < pairs1.Count; i++)
+        {
+            for (int j = 0; j < pairs2.Count; j++)
+            {
+                if (pairs1[i] == pairs2[j])
+                {
+                    intersection++;
+                    pairs2.RemoveAt(j);//Must remove the match to prevent "AAAA" from appearing to match "AA" with 100% success
+                    break;
+                }
+            }
+        }
+
+        return (2.0 * intersection * 100) / union; //returns in percentage
+        //return (2.0 * intersection) / union; //returns in score from 0 to 1
+    }
+    public static List<string> WordLetterPairs(string str)
+    {
+        List<string> AllPairs = new List<string>();
+
+        // Tokenize the string and put the tokens/words into an array
+        string[] Words = Regex.Split(str, @"\s");
+
+        // For each word
+        for (int w = 0; w < Words.Length; w++)
+        {
+            if (!string.IsNullOrEmpty(Words[w]))
+            {
+                // Find the pairs of characters
+                string[] PairsInWord = LetterPairs(Words[w]);
+
+                for (int p = 0; p < PairsInWord.Length; p++)
+                {
+                    AllPairs.Add(PairsInWord[p]);
+                }
+            }
+        }
+        return AllPairs;
+    }
+
+    // Generates an array containing every two consecutive letters in the input string
+    public static string[] LetterPairs(string str)
+    {
+        int numPairs = str.Length - 1;
+        string[] pairs = new string[numPairs];
+
+        for (int i = 0; i < numPairs; i++)
+        {
+            pairs[i] = str.Substring(i, 2);
+        }
+        return pairs;
+    }
+    #endregion
     void ClearText()
     {
         text.text = "";
@@ -104,7 +193,7 @@ public class gameManager : MonoBehaviour
     }
     void ShowText()
     {
-        int sentenceID = Random.Range(0, sentenceSample.Length);
+        int sentenceID = UnityEngine.Random.Range(0, sentenceSample.Length);
         IDshown.Add(sentenceID);
         string[] textSplice = sentenceSample[sentenceID].Split(',');
         text.text = textSplice[1];
