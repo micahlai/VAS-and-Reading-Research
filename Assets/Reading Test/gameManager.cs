@@ -29,6 +29,7 @@ public class gameManager : MonoBehaviour
     string[] sentenceSample;
     bool startText = false;
     string[] lastSentenceSplice;
+    List<int> sentencesShown;
     [Header("Check")]
     public InputField check;
     bool inputting = false;
@@ -72,7 +73,9 @@ public class gameManager : MonoBehaviour
         if (startText)
         {
             startText = false;
+            statusText.text = "";
             ShowText();
+
         }
         check.gameObject.SetActive(inputting);
         if (inputting)
@@ -93,7 +96,14 @@ public class gameManager : MonoBehaviour
 
                 if(CheckSimilarity(inputted,given) > minSimilarity)
                 {
-                    timeShown -= timeReduction;
+                    if (timeShown > timeReduction)
+                    {
+                        timeShown -= timeReduction;
+                    }
+                    else
+                    {
+                        timeShown = timeReduction;
+                    }
                 }
                 else
                 {
@@ -194,6 +204,10 @@ public class gameManager : MonoBehaviour
     void ShowText()
     {
         int sentenceID = UnityEngine.Random.Range(0, sentenceSample.Length);
+        while (IDshown.Contains(sentenceID))
+        {
+            sentenceID = UnityEngine.Random.Range(0, sentenceSample.Length);
+        }
         IDshown.Add(sentenceID);
         string[] textSplice = sentenceSample[sentenceID].Split(',');
         text.text = textSplice[1];
