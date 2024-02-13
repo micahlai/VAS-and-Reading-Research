@@ -29,6 +29,8 @@ public class shapeSpawner : MonoBehaviour
     public float maxTimeToDecrease = 7.5f;
     public int countIncrease = 2;
 
+    public List<VisualSearchData> visualSearchData = new List<VisualSearchData>();
+
     [Header("Test Values")]
     public Vector2 sizeRange;
     public Vector2 hueRange;
@@ -65,7 +67,7 @@ public class shapeSpawner : MonoBehaviour
         bool gotCorrect = compareShape(shape) ^ singular;
         ClearShapes();
         shown = false;
-        if(time < highScore && gotCorrect || highScore == 0)
+        if((time < highScore && gotCorrect || highScore == 0) && count > 17)
         {
             highScore = time;
         }
@@ -81,7 +83,14 @@ public class shapeSpawner : MonoBehaviour
 
 
         statusText.text = "Got Correct: " + gotCorrect.ToString() + ", Time Taken: " + roundToHundreths(time).ToString() + " sec, press space to continue.";
-        scoreText.text = "Fastest score: " + roundToHundreths(highScore).ToString() + " sec";
+        if (count > 20)
+        {
+            scoreText.text = "Fastest score: " + roundToHundreths(highScore).ToString() + " sec";
+        }
+        if (gotCorrect) {
+            visualSearchData.Add(new VisualSearchData(count, shape.shapeData.size, time));
+            FindAnyObjectByType<PlayFabManager>().sendVisualSearchData(visualSearchData.ToArray());
+                }
         time = 0;
     }
     void SpawnShape(int count, Vector2 sizeRange, Vector2 satRange, Vector2 valRange)
@@ -204,5 +213,18 @@ public class shapeSpawner : MonoBehaviour
             isCopy = _isCopy;
         }
 
+    }
+    [System.Serializable]
+    public class VisualSearchData
+    {
+        public int count;
+        public float size;
+        public float time;
+        public VisualSearchData(int _count, float _size, float _time)
+        {
+            count = _count;
+            size = _size;
+            time = _time;
+        }
     }
 }

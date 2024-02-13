@@ -96,6 +96,17 @@ public class PlayFabManager : MonoBehaviour
         };
         PlayFabClientAPI.UpdateUserData(request, onDataSend, onError);
     }
+    public void sendVisualSearchData(shapeSpawner.VisualSearchData[] visualSearchData)
+    {
+        var request = new UpdateUserDataRequest
+        {
+            Data = new Dictionary<string, string>
+            {
+                { "Visual Search Data", JsonConvert.SerializeObject(visualSearchData) }
+            }
+        };
+        PlayFabClientAPI.UpdateUserData(request, onDataSend, onError);
+    }
     void onDataSend(UpdateUserDataResult result)
     {
         Debug.Log(result);
