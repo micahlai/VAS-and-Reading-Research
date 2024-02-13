@@ -5,14 +5,30 @@ using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine.UI;
 using TMPro;
+using Newtonsoft.Json;
 
 public class PlayFabManager : MonoBehaviour
 {
+    public static PlayFabManager manager;
+
     public TextMeshProUGUI messageText;
     public TMP_InputField emailInput;
     public TMP_InputField passwordInput;
     public TMP_InputField usernameInput;
     // Start is called before the first frame update
+
+    private void Awake()
+    {
+        if(manager == null)
+        {
+            manager = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     void Start()
     {
         DontDestroyOnLoad(gameObject);
@@ -38,6 +54,7 @@ public class PlayFabManager : MonoBehaviour
     void OnRegisterSuccess(RegisterPlayFabUserResult ressult)
     {
         messageText.text = "Registered";
+        FindObjectOfType<startScreen>().showScenes();
     }
     public void LoginButton()
     {
@@ -53,11 +70,38 @@ public class PlayFabManager : MonoBehaviour
     {
         Debug.Log("Login Success");
         messageText.text = "Log Success";
+        FindObjectOfType<startScreen>().showScenes();
     }
     void onError(PlayFabError error)
     {
         Debug.LogWarning("Error while logging in");
         Debug.LogWarning(error.GenerateErrorReport());
-        messageText.text = error.GenerateErrorReport();
+        try
+        {
+            messageText.text = error.GenerateErrorReport();
+        }
+        catch
+        {
+
+        }
+    }
+    public void sendReadingData(gameManager.ReadingData readingData)
+    {
+        var request = new UpdateUserDataRequest
+        {
+            Data = new Dictionary<string, string>
+            {
+                { "Reading Data", JsonConvert.SerializeObject(readingData) }
+            }
+        };
+        PlayFabClientAPI.UpdateUserData(request, onDataSend, onError);
+    }
+    void onDataSend(UpdateUserDataResult result)
+    {
+        Debug.Log(result);
+    }
+    void sendShapeData()
+    {
+
     }
 }

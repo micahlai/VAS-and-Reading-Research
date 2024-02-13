@@ -25,6 +25,10 @@ public class shapeSpawner : MonoBehaviour
     float time;
     bool shown = false;
 
+    [Header("Difficulty Curve")]
+    public float maxTimeToDecrease = 7.5f;
+    public int countIncrease = 2;
+
     [Header("Test Values")]
     public Vector2 sizeRange;
     public Vector2 hueRange;
@@ -65,6 +69,17 @@ public class shapeSpawner : MonoBehaviour
         {
             highScore = time;
         }
+
+        //increase difficulty
+        if (gotCorrect)
+        {
+            if(time <= maxTimeToDecrease)
+            {
+                count += countIncrease;
+            }
+        }
+
+
         statusText.text = "Got Correct: " + gotCorrect.ToString() + ", Time Taken: " + roundToHundreths(time).ToString() + " sec, press space to continue.";
         scoreText.text = "Fastest score: " + roundToHundreths(highScore).ToString() + " sec";
         time = 0;

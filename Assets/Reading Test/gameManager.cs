@@ -11,6 +11,7 @@ public class gameManager : MonoBehaviour
 {
     public Text text;
     public Text statusText;
+    public Text scoreText;
     public bool showStatusText = false;
     [Header("Timing")]
     public float timeInterval = 5000f;
@@ -29,10 +30,13 @@ public class gameManager : MonoBehaviour
     string[] sentenceSample;
     bool startText = false;
     string[] lastSentenceSplice;
-    List<int> sentencesShown;
     [Header("Check")]
     public InputField check;
     bool inputting = false;
+
+    //data save
+    float fastestWPM;
+    float fastestTime;
 
     //no repeats
     List<int> IDshown = new List<int>();
@@ -40,8 +44,9 @@ public class gameManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        text.text = "";
+        //text.text = "";
         statusText.text = "";
+        scoreText.text = "";
         sentenceSample = sentences.text.Split(";\n");
         timeShown = startTimeShown;
     }
@@ -60,11 +65,12 @@ public class gameManager : MonoBehaviour
                 textShown = false;
                 ClearText();
                 check.gameObject.SetActive(true);
+                check.ActivateInputField();
                 check.Select();
                 inputting = true;
                 timeState = 0;
             }
-        } else if (timeState >= timeInterval/1000)
+        } else if (Input.GetKeyDown(KeyCode.Space) && !inputting)
         {
             textShown = true;
             startText = true;
@@ -74,6 +80,7 @@ public class gameManager : MonoBehaviour
         {
             startText = false;
             statusText.text = "";
+            scoreText.text = "";
             ShowText();
 
         }
@@ -96,13 +103,25 @@ public class gameManager : MonoBehaviour
 
                 if(CheckSimilarity(inputted,given) > minSimilarity)
                 {
+                    if (fastestTime > timeShown || fastestTime == 0)
+                    {
+                        fastestTime = timeShown;
+                        Debug.Log(fastestTime);
+                    }
+                    if (fastestWPM < GetWPM(lastSentenceSplice[1], timeShown))
+                    {
+                        fastestWPM = GetWPM(lastSentenceSplice[1], timeShown);
+                        Debug.Log(fastestWPM);
+                    }
+
+
                     if (timeShown > timeReduction)
                     {
                         timeShown -= timeReduction;
                     }
                     else
                     {
-                        timeShown = timeReduction;
+                        timeShown = 25;
                     }
                 }
                 else
@@ -111,11 +130,17 @@ public class gameManager : MonoBehaviour
                 }
 
                 check.text = "";
+                
 
                 if (showStatusText)
                 {
-                    statusText.text = "Got correct: " + correct.ToString() + ", " + "% Accuracy: " + similarity.ToString() + ", " + "Time Interval (ms): " + timeShown.ToString();
+                    statusText.text = "Got correct: " + correct.ToString() + ", " + "% Accuracy: " + similarity.ToString() + ", " + "Time Interval (ms): " + timeShown.ToString() + ", press space to continue";
                 }
+                if (correct)
+                {
+                    FindObjectOfType<PlayFabManager>().sendReadingData(new ReadingData(fastestTime,fastestWPM));
+                }
+                scoreText.text = "Fastest Time: " + fastestTime.ToString() + " ms, Fastest WPM: " + fastestWPM.ToString();
 
             }
         }
@@ -123,10 +148,6 @@ public class gameManager : MonoBehaviour
 
 
         
-    }
-    void SendResultData()
-    {
-
     }
     bool CheckAccuracy(string inputText, string matchText)
     {
@@ -201,6 +222,11 @@ public class gameManager : MonoBehaviour
         text.text = "";
 
     }
+    float GetWPM(string input, float time)
+    {
+        string[] sentenceString = input.Split(' ');
+        return sentenceString.Length / (time / 60000);
+    }
     void ShowText()
     {
         int sentenceID = UnityEngine.Random.Range(0, sentenceSample.Length);
@@ -223,5 +249,16 @@ public class gameManager : MonoBehaviour
     public static string RemovePunctuation(string source)
     {
         return new string(source.Where(c => !char.IsPunctuation(c)).ToArray());
+    }
+    [System.Serializable]
+    public class ReadingData
+    {
+        public float fastestTime;
+        public float fastestWPM;
+        public ReadingData(float _fastestTime, float _fastestWPM)
+        {
+            fastestTime = _fastestTime;
+            fastestWPM = _fastestWPM;
+        }
     }
 }

@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Start Screen/StartScreen.unity
+    guid: b24c5a3e20e6448e697bf702b3f00409
+  - enabled: 1
+    path: Assets/Comparative Visual Search/comparativeVS.unity
+    guid: b2a2e27a9b6f5448283973cb2a2509c2
+  - enabled: 1
     path: Assets/Reading Test/readingTest.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   m_configObjects: {}
