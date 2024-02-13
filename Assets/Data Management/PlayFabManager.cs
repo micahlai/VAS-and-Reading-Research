@@ -42,9 +42,11 @@ public class PlayFabManager : MonoBehaviour
     }
     public void RegisterButton()
     {
+        string user = usernameInput.text + "p"; ;
         var request = new RegisterPlayFabUserRequest
         {
-            Username = usernameInput.text.Remove(usernameInput.text.Length - 1),
+            Username = user.Remove(user.Length - 1),
+            DisplayName = user.Remove(user.Length - 1),
             Email = emailInput.text,
             Password = passwordInput.text,
             RequireBothUsernameAndEmail = true
