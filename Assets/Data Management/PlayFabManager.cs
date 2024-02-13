@@ -53,7 +53,7 @@ public class PlayFabManager : MonoBehaviour
     }
     void OnRegisterSuccess(RegisterPlayFabUserResult ressult)
     {
-        messageText.text = "Registered";
+        messageText.text = "Registered " + ressult.Username;
         FindObjectOfType<startScreen>().showScenes();
     }
     public void LoginButton()
