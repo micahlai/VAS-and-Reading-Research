@@ -93,7 +93,7 @@ public class PlayFabManager : MonoBehaviour
         {
             Data = new Dictionary<string, string>
             {
-                { "Reading Data", JsonConvert.SerializeObject(readingData) }
+                { "Post Reading Data", JsonConvert.SerializeObject(readingData) }
             }
         };
         PlayFabClientAPI.UpdateUserData(request, onDataSend, onError);
@@ -104,7 +104,7 @@ public class PlayFabManager : MonoBehaviour
         {
             Data = new Dictionary<string, string>
             {
-                { "Visual Search Data", JsonConvert.SerializeObject(visualSearchData) }
+                { "Post Visual Search Data", JsonConvert.SerializeObject(visualSearchData) }
             }
         };
         PlayFabClientAPI.UpdateUserData(request, onDataSend, onError);
